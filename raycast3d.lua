@@ -84,7 +84,7 @@ local function WallRender(x,y,stride,top_wall,wh,cell_idx,offs)
 		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,0xFF0000FF)
 	else
 		scale_y = wh / tile_size
-		Graphics.drawImageExtended(x+stride,y+top_wall+(wh>>1), offs, 0, accuracy, tile_size, 0, 1, scale_y, tmp)
+		Graphics.drawImageExtended(x+stride,y+top_wall+(wh/2), offs, 0, accuracy, tile_size, 0, 1, scale_y, tmp)
 	end
 end
 local function WallFloorRender(x,y,stride,top_wall,wh,cell_idx,offs)
@@ -93,7 +93,7 @@ local function WallFloorRender(x,y,stride,top_wall,wh,cell_idx,offs)
 		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,0xFF0000FF)
 	else
 		scale_y = wh / tile_size
-		Graphics.drawImageExtended(x+stride,y+top_wall+(wh>>1), offs, 0, accuracy, tile_size, 0, 1, scale_y, tmp)
+		Graphics.drawImageExtended(x+stride,y+top_wall+(wh/2), offs, 0, accuracy, tile_size, 0, 1, scale_y, tmp)
 	end
 	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall+wh,vheight,0xFFFFFFFF)
 end
@@ -103,7 +103,7 @@ local function WallSkyRender(x,y,stride,top_wall,wh,cell_idx,offs)
 		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,0xFF0000FF)
 	else
 		scale_y = wh / tile_size
-		Graphics.drawImageExtended(x+stride,y+top_wall+(wh>>1), offs, 0, accuracy, tile_size, 0, 1, scale_y, tmp)
+		Graphics.drawImageExtended(x+stride,y+top_wall+(wh/2), offs, 0, accuracy, tile_size, 0, 1, scale_y, tmp)
 	end
 	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,0,0xFFFF00FF)
 end
@@ -113,7 +113,7 @@ local function WallFloorSkyRender(x,y,stride,top_wall,wh,cell_idx,offs)
 		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,0xFF0000FF)
 	else
 		scale_y = wh / tile_size
-		Graphics.drawImageExtended(x+stride,y+top_wall+(wh>>1), offs, 0, accuracy, tile_size, 0, 1, scale_y, tmp)
+		Graphics.drawImageExtended(x+stride,y+top_wall+(wh/2), offs, 0, accuracy, tile_size, 0, 1, scale_y, tmp)
 	end
 	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall+wh,vheight,0xFFFFFFFF)
 	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,0,0xFFFF00FF)
