@@ -27,9 +27,16 @@ cam_speed = 50
 -- Setting up RayCast3D Engine
 RayCast3D.setResolution(400, 240)
 RayCast3D.setViewsize(60)
-RayCast3D.setAccuracy(3)
 RayCast3D.loadMap(map, map_width, map_height, tile_size, wall_height)
 RayCast3D.spawnPlayer(80, 80, 300)
+
+-- Set accuracy depending on console
+System.setCpuSpeed(804)
+if System.getCpuSpeed() == 804 then
+	RayCast3D.setAccuracy(1)
+else
+	RayCast3D.setAccuracy(3)
+end
 
 Graphics.init()
 while true do
@@ -70,7 +77,9 @@ while true do
 		RayCast3D.movePlayer(BACK, pl_speed)
 	end
 	if Controls.check(pad,KEY_START) then
-		error("So you want to restart?")
+		Graphics.freeImage(W)
+		Graphics.term()
+		System.exit()
 	end
 	oldpad = pad
 	
