@@ -303,7 +303,7 @@ end
 
 --[[enableSky: Enable sky rendering]]--
 function RayCast3D.enableSky(val)
-	floors = val
+	sky = val
 end
 
 --[[spawnPlayer: Spawn player on the map]]--
@@ -322,12 +322,31 @@ end
 function RayCast3D.movePlayer(dir, speed)
 	xmov = math.ceil(costable[pl_angle] * speed)
 	ymov = math.ceil(sintable[pl_angle] * speed)
+	old_x = pl_x
+	old_y = pl_y
 	if dir == FORWARD then
 		pl_x = pl_x + xmov
 		pl_y = pl_y + ymov
 	elseif dir == BACK then
 		pl_x = pl_x - xmov
 		pl_y = pl_y - ymov
+	end
+	ytmp = pl_y >> tile_shift
+	xtmp = pl_x >> tile_shift
+	new_cell = 1 + (xtmp) + (ytmp * map_width)
+	if map[new_cell] ~= 1 then
+		ydiff = (old_y >> tile_shift) - ytmp
+		if ydiff > 0 then
+			pl_y = (ytmp << tile_shift) + (tile_size + 1)
+		elseif ydiff < 0 then
+			pl_y = (ytmp << tile_shift) - 1
+		end
+		xdiff = (old_x >> tile_shift) - xtmp
+		if xdiff > 0 then
+			pl_x = (xtmp << tile_shift) + (tile_size + 1)
+		elseif xdiff < 0 then
+			pl_x = (xtmp << tile_shift) - 1
+		end
 	end
 end
 
@@ -354,7 +373,7 @@ function RayCast3D.loadMap(map_table, m_width, m_height, t_size, w_height)
 		tmp = 2
 		i = 1
 		while tmp < tile_size do
-			tmp = bit32.lshift(tmp, 1)
+			tmp = tmp << 1
 			i = i + 1
 		end
 		if tmp ~= tile_size then
