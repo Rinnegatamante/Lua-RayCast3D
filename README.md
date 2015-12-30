@@ -10,13 +10,14 @@ At the moment these are the <b>Features</b> Lua RayCast3D offers:<br>
 - Support for huge maps (pratically there aren't limitations)
 - Support for sky rendering and floor rendering
 - Automated minimap renderer with player position
+- Textured walls support
+- Editable FOV
+- Walls collision
 
 What this engine needs to be finished is listed in this <b>TODO List</b>:<br>
-- Player collisions with walls
 - Sprites support for animations
 - Bullets physic
-- Editable FOV
-- Support to textures for walls, sky, floors
+- Support to textures for sky, floors
 
 A cool TechDemo recorded by ihaveamac can be watched here: https://www.youtube.com/watch?v=lWFZMdCD-4c
 <br><br>
