@@ -78,19 +78,43 @@ end
 local function rad2arc(val)
 	return (val*ANGLE180)/math.pi
 end
-local function WallRender(x,y,stride,top_wall,wh)
-	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,0xFF0000FF)
+local function WallRender(x,y,stride,top_wall,wh,cell_idx,offs)
+	tmp = map[cell_idx]
+	if tmp < 2 then
+		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,0xFF0000FF)
+	else
+		scale_y = wh / tile_size
+		Graphics.drawImageExtended(x+stride,y+top_wall+(wh>>1), offs, 0, accuracy, tile_size, 0, 1, scale_y, tmp)
+	end
 end
-local function WallFloorRender(x,y,stride,top_wall,wh)
-	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,0xFF0000FF)
+local function WallFloorRender(x,y,stride,top_wall,wh,cell_idx,offs)
+	tmp = map[cell_idx]
+	if tmp < 2 then
+		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,0xFF0000FF)
+	else
+		scale_y = wh / tile_size
+		Graphics.drawImageExtended(x+stride,y+top_wall+(wh>>1), offs, 0, accuracy, tile_size, 0, 1, scale_y, tmp)
+	end
 	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall+wh,vheight,0xFFFFFFFF)
 end
-local function WallSkyRender(x,y,stride,top_wall,wh)
-	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,0xFF0000FF)
+local function WallSkyRender(x,y,stride,top_wall,wh,cell_idx,offs)
+	tmp = map[cell_idx]
+	if tmp < 2 then
+		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,0xFF0000FF)
+	else
+		scale_y = wh / tile_size
+		Graphics.drawImageExtended(x+stride,y+top_wall+(wh>>1), offs, 0, accuracy, tile_size, 0, 1, scale_y, tmp)
+	end
 	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,0,0xFFFF00FF)
 end
-local function WallFloorSkyRender(x,y,stride,top_wall,wh)
-	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,0xFF0000FF)
+local function WallFloorSkyRender(x,y,stride,top_wall,wh,cell_idx,offs)
+	tmp = map[cell_idx]
+	if tmp < 2 then
+		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,0xFF0000FF)
+	else
+		scale_y = wh / tile_size
+		Graphics.drawImageExtended(x+stride,y+top_wall+(wh>>1), offs, 0, accuracy, tile_size, 0, 1, scale_y, tmp)
+	end
 	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall+wh,vheight,0xFFFFFFFF)
 	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,0,0xFFFF00FF)
 end
@@ -209,10 +233,11 @@ function RayCast3D.renderScene(x, y)
 			while true do
 				xgrid_index = math.ceil(xinter) >> tile_shift
 				ygrid_index = hgrid >> tile_shift
+				cell_idx_x = ygrid_index*map_width+xgrid_index+1
 				if (xgrid_index >= map_width or ygrid_index >= map_height or xgrid_index < 0 or ygrid_index < 0) then
 					dist_hgrid_hit = math.huge
 					break
-				elseif (map[ygrid_index*map_width+xgrid_index+1] ~= 1) then
+				elseif (map[cell_idx_x] ~= 0) then
 					dist_hgrid_hit = (xinter - pl_x) * costable2[castArc]
 					break
 				else
@@ -240,10 +265,11 @@ function RayCast3D.renderScene(x, y)
 			while true do
 				xgrid_index = vgrid >> tile_shift
 				ygrid_index = math.ceil(yinter) >> tile_shift
+				cell_idx_y = ygrid_index*map_width+xgrid_index+1
 				if (xgrid_index >= map_width or ygrid_index >= map_height or xgrid_index < 0 or ygrid_index < 0) then
 					dist_vgrid_hit = math.huge
 					break
-				elseif (map[ygrid_index*map_width+xgrid_index+1] ~= 1) then
+				elseif (map[cell_idx_y] ~= 0) then
 					dist_vgrid_hit = (yinter-pl_y)*sintable2[castArc]
 					break
 				else
@@ -254,8 +280,12 @@ function RayCast3D.renderScene(x, y)
 		end
 		if (dist_hgrid_hit < dist_vgrid_hit) then
 			dist = dist_hgrid_hit
+			offs = math.ceil(yinter % 64)
+			cell_idx = cell_idx_x
 		else
 			dist = dist_vgrid_hit
+			offs = math.ceil(xinter % 64)
+			cell_idx = cell_idx_y
 		end
 		dist = dist / fishtable[stride]
 		wh = math.ceil(wall_height * (dist_proj / dist))
@@ -264,7 +294,7 @@ function RayCast3D.renderScene(x, y)
 		if (bot_wall >= vheight) then
 			bot_wall = vheight - 1
 		end
-		RenderRay(x,y,stride,top_wall,wh)
+		RenderRay(x,y,stride,top_wall,wh,cell_idx,offs)
 		stride = stride + accuracy
 		castArc = castArc + accuracy
 		if castArc >= ANGLE360 then
@@ -273,20 +303,31 @@ function RayCast3D.renderScene(x, y)
 	end
 end
 
---[[renderMinimap: Render 2D map scene using GPU]]--
+--[[renderMap: Render 2D map scene using GPU]]--
 function RayCast3D.renderMap(x, y, width)
 	u = 0
 	while (u < map_width) do
 		v = 0
 		while (v < map_height) do
-			if (map[v*map_width+u+1]==0) then
-				color = 0xFF0000FF
-			else
+			tmp = map[v*map_width+u+1]
+			if (tmp==0) then
 				color = 0xFFFFFFFF
+			else
+				if tmp == 1 then
+					color = 0xFF0000FF
+				else
+					
+				end
 			end
 			xp = x + u * width
 			yp = y + v * width
-			Graphics.fillRect(xp, xp + width, yp, yp + width, color)
+			if tmp < 2 then
+				Graphics.fillRect(xp, xp + width, yp, yp + width, color)
+			else
+				w = Graphics.getImageWidth(tmp)
+				s = width / w
+				Graphics.drawScaleImage(xp, yp, tmp, s, s)
+			end
 			v = v + 1
 		end
 		u = u + 1
@@ -334,7 +375,7 @@ function RayCast3D.movePlayer(dir, speed)
 	ytmp = pl_y >> tile_shift
 	xtmp = pl_x >> tile_shift
 	new_cell = 1 + (xtmp) + (ytmp * map_width)
-	if map[new_cell] ~= 1 then
+	if map[new_cell] ~= 0 then
 		ydiff = (old_y >> tile_shift) - ytmp
 		if ydiff > 0 then
 			pl_y = (ytmp << tile_shift) + (tile_size + 1)
@@ -361,6 +402,16 @@ function RayCast3D.rotateCamera(dir, speed)
 		pl_angle = pl_angle + speed
 		if pl_angle >= ANGLE360 then
 			pl_angle = math.ceil(pl_angle - ANGLE360)
+		end
+	elseif dir == FORWARD then
+		ycenter = ycenter - (speed >> 2)
+		if ycenter < 0 then
+			ycenter = 0
+		end
+	elseif dir == BACK then
+		ycenter = ycenter + (speed >> 2)
+		if ycenter > vheight then
+			ycenter = vheight
 		end
 	end
 end

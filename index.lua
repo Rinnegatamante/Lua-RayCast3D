@@ -6,17 +6,18 @@
 dofile(System.currentDirectory().."/raycast3d.lua")
 
 -- Map Details
-wall_height = 64
+wall_height = 32
 tile_size = 64
 map_width = 7
 map_height = 6
+W = Graphics.loadImage(System.currentDirectory().."/wall.png")
 map = {
-	0,0,0,0,0,0,0,
-	0,1,1,1,1,1,0,
-	0,1,1,1,1,1,0,
-	0,1,1,1,1,1,0,
-	0,1,1,1,1,1,0,
-	0,0,0,0,0,0,0
+	W,W,W,W,W,W,W,
+	W,0,0,0,0,0,W,
+	W,0,W,W,W,0,W,
+	W,0,0,W,0,0,W,
+	W,0,0,W,W,0,W,
+	W,W,W,W,W,W,W
 }
 
 -- Player Speed
@@ -28,7 +29,7 @@ RayCast3D.setResolution(400, 240)
 RayCast3D.setViewsize(60)
 RayCast3D.setAccuracy(3)
 RayCast3D.loadMap(map, map_width, map_height, tile_size, wall_height)
-RayCast3D.spawnPlayer(227, 193, 300)
+RayCast3D.spawnPlayer(80, 80, 300)
 
 Graphics.init()
 while true do
@@ -58,6 +59,12 @@ while true do
 	end
 	if Controls.check(pad,KEY_DUP) then
 		RayCast3D.movePlayer(FORWARD, pl_speed)
+	end
+	if Controls.check(pad,KEY_X) then
+		RayCast3D.rotateCamera(FORWARD, cam_speed)
+	end
+	if Controls.check(pad,KEY_B) then
+		RayCast3D.rotateCamera(BACK, cam_speed)
 	end
 	if Controls.check(pad,KEY_DDOWN) then
 		RayCast3D.movePlayer(BACK, pl_speed)
