@@ -43,6 +43,7 @@ local pl_angle = 0
  local floor_c = Color.new(255, 255, 255, 255)
  local sky_c = Color.new(0, 0, 0, 255)
  local wall_c = Color.new(0, 0, 255, 255)
+ local player_c = Color.new(255, 255, 0, 255)
 
 -- Angles Globals (DON'T EDIT)
 local ANGLE60 = vwidth
@@ -85,7 +86,7 @@ end
 local function WallRender(x,y,stride,top_wall,wh,cell_idx,offs)
 	tmp = map[cell_idx]
 	if tmp < 2 then
-		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,0xFF0000FF)
+		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,wall_c)
 	else
 		scale_y = wh / tile_size
 		Graphics.drawImageExtended(x+stride,y+top_wall+(wh/2), offs, 0, accuracy, tile_size, 0, 1, scale_y, tmp)
@@ -109,7 +110,7 @@ local function WallSkyRender(x,y,stride,top_wall,wh,cell_idx,offs)
 		scale_y = wh / tile_size
 		Graphics.drawImageExtended(x+stride,y+top_wall+(wh/2), offs, 0, accuracy, tile_size, 0, 1, scale_y, tmp)
 	end
-	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,0,floor_c)
+	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y,floor_c)
 end
 local function WallFloorSkyRender(x,y,stride,top_wall,wh,cell_idx,offs)
 	tmp = map[cell_idx]
@@ -120,7 +121,7 @@ local function WallFloorSkyRender(x,y,stride,top_wall,wh,cell_idx,offs)
 		Graphics.drawImageExtended(x+stride,y+top_wall+(wh/2), offs, 0, accuracy, tile_size, 0, 1, scale_y, tmp)
 	end
 	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall+wh,vheight,floor_c)
-	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,0,sky_c)
+	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y,sky_c)
 end
 local function ResetAngles()
 	ANGLE60 = vwidth
@@ -197,8 +198,14 @@ function RayCast3D.setViewsize(angle)
 	ResetProjections()
 end
 
---[[renderScene: Render viewport scene using GPU]]--
-function RayCast3D.renderScene(x, y)
+--[[renderRightScene: Render right eye viewport scene using GPU]]--
+function RayCast3D.renderRightScene(x, y)
+	xdiff = math.ceil(costable[pl_angle] * Screen.get3DLevel() * 5)
+	ydiff = math.ceil(sintable[pl_angle] * Screen.get3DLevel() * 5)
+	or_x = pl_x
+	or_y = pl_y
+	pl_x = pl_x + ydiff
+	pl_y = pl_y - xdiff
 	if floors then
 		if sky then
 			RenderRay = WallFloorSkyRender
@@ -231,7 +238,7 @@ function RayCast3D.renderScene(x, y)
 			hgrid = hgrid - 1
 		end
 		if (castArc == ANGLE0 or castArc == ANGLE180) then -- Prevent asymptotics values
-			dist_hgrid_hit = math.huge
+			dist_hgrid_hit = 99999
 		else
 			dist_next_xinter = xsteptable[castArc]
 			while true do
@@ -263,7 +270,7 @@ function RayCast3D.renderScene(x, y)
 			vgrid = vgrid - 1
 		end
 		if (castArc == ANGLE90 or castArc == ANGLE270) then
-			dist_vgrid_hit = math.huge
+			dist_vgrid_hit = 99999
 		else
 			dist_next_yinter = ysteptable[castArc]
 			while true do
@@ -284,11 +291,241 @@ function RayCast3D.renderScene(x, y)
 		end
 		if (dist_hgrid_hit < dist_vgrid_hit) then
 			dist = dist_hgrid_hit
-			offs = math.ceil(yinter % 64)
+			offs = math.ceil(yinter) % 64
 			cell_idx = cell_idx_x
 		else
 			dist = dist_vgrid_hit
-			offs = math.ceil(xinter % 64)
+			offs = math.ceil(xinter) % 64
+			cell_idx = cell_idx_y
+		end
+		dist = dist / fishtable[stride]
+		wh = math.ceil(wall_height * dist_proj / dist)
+		bot_wall = ycenter + math.ceil(wh * 0.5)
+		top_wall = vheight-bot_wall
+		if (bot_wall >= vheight) then
+			bot_wall = vheight - 1
+		end
+		RenderRay(x,y,stride,top_wall,wh,cell_idx,offs)
+		stride = stride + accuracy
+		castArc = castArc + accuracy
+		if castArc >= ANGLE360 then
+			castArc = castArc - ANGLE360
+		end
+	end
+	pl_x = or_x
+	pl_y = or_y
+end
+
+--[[renderLeftScene: Render left eye viewport scene using GPU]]--
+function RayCast3D.renderLeftScene(x, y)
+	xdiff = math.ceil(costable[pl_angle] * Screen.get3DLevel() * 5)
+	ydiff = math.ceil(sintable[pl_angle] * Screen.get3DLevel() * 5)
+	or_x = pl_x
+	or_y = pl_y
+	pl_x = pl_x - ydiff
+	pl_y = pl_y + xdiff
+	if floors then
+		if sky then
+			RenderRay = WallFloorSkyRender
+		else
+			RenderRay = WallFloorRender
+		end
+	else
+		if sky then
+			RenderRay = WallSkyRender
+		else
+			RenderRay = WallRender
+		end
+	end
+	castArc = pl_angle - ANGLE30
+	if castArc < 0 then
+		castArc = ANGLE360 + castArc
+	end
+	stride = 0
+	while stride < vwidth do
+		if (castArc > ANGLE0 and castArc < ANGLE180) then
+			hgrid = ((pl_y >> tile_shift) << tile_shift) + tile_size
+			dist_next_hgrid = tile_size
+			xtmp = tantable2[castArc]*(hgrid-pl_y)
+			xinter = xtmp + pl_x
+		else
+			hgrid = ((pl_y >> tile_shift) << tile_shift)
+			dist_next_hgrid = 0 - tile_size
+			xtmp = tantable2[castArc]*(hgrid-pl_y)
+			xinter = xtmp + pl_x
+			hgrid = hgrid - 1
+		end
+		if (castArc == ANGLE0 or castArc == ANGLE180) then -- Prevent asymptotics values
+			dist_vgrid_hit = 99999
+		else
+			dist_next_xinter = xsteptable[castArc]
+			while true do
+				xgrid_index = math.ceil(xinter) >> tile_shift
+				ygrid_index = hgrid >> tile_shift
+				cell_idx_x = ygrid_index*map_width+xgrid_index+1
+				if (xgrid_index >= map_width or ygrid_index >= map_height or xgrid_index < 0 or ygrid_index < 0) then
+					dist_hgrid_hit = math.huge
+					break
+				elseif (map[cell_idx_x] ~= 0) then
+					dist_hgrid_hit = (xinter - pl_x) * costable2[castArc]
+					break
+				else
+					xinter = xinter + dist_next_xinter
+					hgrid = hgrid + dist_next_hgrid
+				end
+			end
+		end
+		if castArc < ANGLE90 or castArc > ANGLE270 then
+			vgrid = tile_size + ((pl_x >> tile_shift) << tile_shift)
+			dist_next_vgrid = tile_size
+			ytmp = tantable[castArc]*(vgrid - pl_x)
+			yinter = ytmp + pl_y
+		else
+			vgrid = (pl_x >> tile_shift) << tile_shift
+			dist_next_vgrid = 0 - tile_size
+			ytmp = tantable[castArc]*(vgrid-pl_x)
+			yinter = ytmp + pl_y
+			vgrid = vgrid - 1
+		end
+		if (castArc == ANGLE90 or castArc == ANGLE270) then
+			dist_vgrid_hit = 99999
+		else
+			dist_next_yinter = ysteptable[castArc]
+			while true do
+				xgrid_index = vgrid >> tile_shift
+				ygrid_index = math.ceil(yinter) >> tile_shift
+				cell_idx_y = ygrid_index*map_width+xgrid_index+1
+				if (xgrid_index >= map_width or ygrid_index >= map_height or xgrid_index < 0 or ygrid_index < 0) then
+					dist_vgrid_hit = math.huge
+					break
+				elseif (map[cell_idx_y] ~= 0) then
+					dist_vgrid_hit = (yinter-pl_y)*sintable2[castArc]
+					break
+				else
+					yinter = yinter + dist_next_yinter
+					vgrid = vgrid + dist_next_vgrid
+				end
+			end
+		end
+		if (dist_hgrid_hit < dist_vgrid_hit) then
+			dist = dist_hgrid_hit
+			offs = math.ceil(yinter) % 64
+			cell_idx = cell_idx_x
+		else
+			dist = dist_vgrid_hit
+			offs = math.ceil(xinter) % 64
+			cell_idx = cell_idx_y
+		end
+		dist = dist / fishtable[stride]
+		wh = math.ceil(wall_height * dist_proj / dist)
+		bot_wall = ycenter + math.ceil(wh * 0.5)
+		top_wall = vheight-bot_wall
+		if (bot_wall >= vheight) then
+			bot_wall = vheight - 1
+		end
+		RenderRay(x,y,stride,top_wall,wh,cell_idx,offs)
+		stride = stride + accuracy
+		castArc = castArc + accuracy
+		if castArc >= ANGLE360 then
+			castArc = castArc - ANGLE360
+		end
+	end
+	pl_x = or_x
+	pl_y = or_y
+end
+
+--[[renderScene: Render viewport scene using GPU]]--
+function RayCast3D.renderScene(x, y)
+	if floors then
+		if sky then
+			RenderRay = WallFloorSkyRender
+		else
+			RenderRay = WallFloorRender
+		end
+	else
+		if sky then
+			RenderRay = WallSkyRender
+		else
+			RenderRay = WallRender
+		end
+	end
+	castArc = pl_angle - ANGLE30
+	if castArc < 0 then
+		castArc = ANGLE360 + castArc
+	end
+	stride = 0
+	while stride < vwidth do
+		if (castArc > ANGLE0 and castArc < ANGLE180) then
+			hgrid = ((pl_y >> tile_shift) << tile_shift) + tile_size
+			dist_next_hgrid = tile_size
+			xtmp = tantable2[castArc]*(hgrid-pl_y)
+			xinter = xtmp + pl_x
+		else
+			hgrid = ((pl_y >> tile_shift) << tile_shift)
+			dist_next_hgrid = -tile_size
+			xtmp = tantable2[castArc]*(hgrid-pl_y)
+			xinter = xtmp + pl_x
+			hgrid = hgrid - 1
+		end
+		if (castArc == ANGLE0 or castArc == ANGLE180) then -- Prevent asymptotics values
+			dist_vgrid_hit = 99999
+		else
+			dist_next_xinter = xsteptable[castArc]
+			while true do
+				xgrid_index = math.ceil(xinter) >> tile_shift
+				ygrid_index = hgrid >> tile_shift
+				cell_idx_x = ygrid_index*map_width+xgrid_index+1
+				if (xgrid_index >= map_width or ygrid_index >= map_height or xgrid_index < 0 or ygrid_index < 0) then
+					dist_hgrid_hit = math.huge
+					break
+				elseif (map[cell_idx_x] ~= 0) then
+					dist_hgrid_hit = (xinter - pl_x) * costable2[castArc]
+					break
+				else
+					xinter = xinter + dist_next_xinter
+					hgrid = hgrid + dist_next_hgrid
+				end
+			end
+		end
+		if castArc < ANGLE90 or castArc > ANGLE270 then
+			vgrid = tile_size + ((pl_x >> tile_shift) << tile_shift)
+			dist_next_vgrid = tile_size
+			ytmp = tantable[castArc]*(vgrid - pl_x)
+			yinter = ytmp + pl_y
+		else
+			vgrid = (pl_x >> tile_shift) << tile_shift
+			dist_next_vgrid = 0 - tile_size
+			ytmp = tantable[castArc]*(vgrid-pl_x)
+			yinter = ytmp + pl_y
+			vgrid = vgrid - 1
+		end
+		if (castArc == ANGLE90 or castArc == ANGLE270) then
+			dist_vgrid_hit = 99999
+		else
+			dist_next_yinter = ysteptable[castArc]
+			while true do
+				xgrid_index = vgrid >> tile_shift
+				ygrid_index = math.ceil(yinter) >> tile_shift
+				cell_idx_y = ygrid_index*map_width+xgrid_index+1
+				if (xgrid_index >= map_width or ygrid_index >= map_height or xgrid_index < 0 or ygrid_index < 0) then
+					dist_vgrid_hit = math.huge
+					break
+				elseif (map[cell_idx_y] ~= 0) then
+					dist_vgrid_hit = (yinter-pl_y)*sintable2[castArc]
+					break
+				else
+					yinter = yinter + dist_next_yinter
+					vgrid = vgrid + dist_next_vgrid
+				end
+			end
+		end
+		if (dist_hgrid_hit < dist_vgrid_hit) then
+			dist = dist_hgrid_hit
+			offs = math.ceil(yinter) % 64
+			cell_idx = cell_idx_x
+		else
+			dist = dist_vgrid_hit
+			offs = math.ceil(xinter) % 64
 			cell_idx = cell_idx_y
 		end
 		dist = dist / fishtable[stride]
@@ -338,7 +575,7 @@ function RayCast3D.renderMap(x, y, width)
 	end
 	xpp = x + (pl_x / tile_size) * width
 	ypp = y + (pl_y / tile_size) * width
-	Graphics.fillRect(xpp,xpp+2,ypp,ypp+2,0xFFFF00FF)
+	Graphics.fillRect(xpp,xpp+2,ypp,ypp+2,player_c)
 end
 
 --[[enableFloors: Enable floors rendering]]--
@@ -466,4 +703,9 @@ end
 --[[setWallColor: Sets wall color]]--
 function RayCast3D.setWallColor(val)
 	wall_c = val
+end
+
+--[[setSkyColor: Sets player color]]--
+function RayCast3D.setPlayerColor(val)
+	player_c = val
 end
