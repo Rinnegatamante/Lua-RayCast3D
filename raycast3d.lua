@@ -38,7 +38,11 @@ local map = {
 local pl_x = 0
 local pl_y = 0
 local pl_angle = 0
-
+ 
+ -- Colors Globals
+ local floor_c = Color.new(255, 255, 255, 255)
+ local sky_c = Color.new(0, 0, 0, 255)
+ local wall_c = Color.new(0, 0, 255, 255)
 
 -- Angles Globals (DON'T EDIT)
 local ANGLE60 = vwidth
@@ -90,33 +94,33 @@ end
 local function WallFloorRender(x,y,stride,top_wall,wh,cell_idx,offs)
 	tmp = map[cell_idx]
 	if tmp < 2 then
-		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,0xFF0000FF)
+		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,wall_c)
 	else
 		scale_y = wh / tile_size
 		Graphics.drawImageExtended(x+stride,y+top_wall+(wh/2), offs, 0, accuracy, tile_size, 0, 1, scale_y, tmp)
 	end
-	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall+wh,vheight,0xFFFFFFFF)
+	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall+wh,vheight,floor_c)
 end
 local function WallSkyRender(x,y,stride,top_wall,wh,cell_idx,offs)
 	tmp = map[cell_idx]
 	if tmp < 2 then
-		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,0xFF0000FF)
+		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,wall_c)
 	else
 		scale_y = wh / tile_size
 		Graphics.drawImageExtended(x+stride,y+top_wall+(wh/2), offs, 0, accuracy, tile_size, 0, 1, scale_y, tmp)
 	end
-	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,0,0xFFFF00FF)
+	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,0,floor_c)
 end
 local function WallFloorSkyRender(x,y,stride,top_wall,wh,cell_idx,offs)
 	tmp = map[cell_idx]
 	if tmp < 2 then
-		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,0xFF0000FF)
+		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,wall_c)
 	else
 		scale_y = wh / tile_size
 		Graphics.drawImageExtended(x+stride,y+top_wall+(wh/2), offs, 0, accuracy, tile_size, 0, 1, scale_y, tmp)
 	end
-	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall+wh,vheight,0xFFFFFFFF)
-	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,0,0xFFFF00FF)
+	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall+wh,vheight,floor_c)
+	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,0,sky_c)
 end
 local function ResetAngles()
 	ANGLE60 = vwidth
@@ -288,7 +292,7 @@ function RayCast3D.renderScene(x, y)
 			cell_idx = cell_idx_y
 		end
 		dist = dist / fishtable[stride]
-		wh = math.ceil(wall_height * (dist_proj / dist))
+		wh = math.ceil(wall_height * dist_proj / dist)
 		bot_wall = ycenter + math.ceil(wh * 0.5)
 		top_wall = vheight-bot_wall
 		if (bot_wall >= vheight) then
@@ -311,10 +315,10 @@ function RayCast3D.renderMap(x, y, width)
 		while (v < map_height) do
 			tmp = map[v*map_width+u+1]
 			if (tmp==0) then
-				color = 0xFFFFFFFF
+				color = floor_c
 			else
 				if tmp == 1 then
-					color = 0xFF0000FF
+					color = wall_c
 				else
 					
 				end
@@ -371,6 +375,12 @@ function RayCast3D.movePlayer(dir, speed)
 	elseif dir == BACK then
 		pl_x = pl_x - xmov
 		pl_y = pl_y - ymov
+	elseif dir == LEFT then
+		pl_x = pl_x + ymov
+		pl_y = pl_y - xmov
+	elseif dir == RIGHT then
+		pl_x = pl_x - ymov
+		pl_y = pl_y + xmov
 	end
 	ytmp = pl_y >> tile_shift
 	xtmp = pl_x >> tile_shift
@@ -441,4 +451,19 @@ end
 --[[setAccuracy: Sets renderer accuracy]]--
 function RayCast3D.setAccuracy(val)
 	accuracy = val
+end
+
+--[[setFloorColor: Sets floor color]]--
+function RayCast3D.setFloorColor(val)
+	floor_c = val
+end
+
+--[[setSkyColor: Sets sky color]]--
+function RayCast3D.setSkyColor(val)
+	sky_c = val
+end
+
+--[[setWallColor: Sets wall color]]--
+function RayCast3D.setWallColor(val)
+	wall_c = val
 end
