@@ -64,7 +64,7 @@ local costable = {}
 local costable2 = {}
 local tantable = {}
 local tantable2 = {}
-local fishtable = {}
+local fishtable = {} -- Anti-fishbowl effect values
 local xsteptable = {}
 local ysteptable = {}
 
@@ -153,14 +153,14 @@ local function ResetAngles()
 		tantable[i] = sintable[i] / costable[i]
 		tantable2[i] = (1.0/(tantable[i]))
 		if (i >= ANGLE90 and i < ANGLE270) then
-			xsteptable[i] = 0.0 - math.abs(tile_size / tantable[i])
+			xsteptable[i] = -math.abs(tile_size / tantable[i])
 		else
 			xsteptable[i] = math.abs(tile_size / tantable[i])
 		end
 		if (i >= ANGLE0 and i < ANGLE180) then
 			ysteptable[i] = math.abs(tile_size * tantable[i])
 		else
-			ysteptable[i] = 0.0 - math.abs(tile_size * tantable[i])
+			ysteptable[i] = -math.abs(tile_size * tantable[i])
 		end
 		i = i + 1
 	end
@@ -242,7 +242,7 @@ function RayCast3D.renderRightScene(x, y)
 		else
 			dist_next_xinter = xsteptable[castArc]
 			while true do
-				xgrid_index = math.ceil(xinter) >> tile_shift
+				xgrid_index = math.floor(xinter) >> tile_shift
 				ygrid_index = hgrid >> tile_shift
 				cell_idx_x = ygrid_index*map_width+xgrid_index+1
 				if (xgrid_index >= map_width or ygrid_index >= map_height or xgrid_index < 0 or ygrid_index < 0) then
@@ -264,7 +264,7 @@ function RayCast3D.renderRightScene(x, y)
 			yinter = ytmp + pl_y
 		else
 			vgrid = (pl_x >> tile_shift) << tile_shift
-			dist_next_vgrid = 0 - tile_size
+			dist_next_vgrid = -tile_size
 			ytmp = tantable[castArc]*(vgrid-pl_x)
 			yinter = ytmp + pl_y
 			vgrid = vgrid - 1
@@ -275,7 +275,7 @@ function RayCast3D.renderRightScene(x, y)
 			dist_next_yinter = ysteptable[castArc]
 			while true do
 				xgrid_index = vgrid >> tile_shift
-				ygrid_index = math.ceil(yinter) >> tile_shift
+				ygrid_index = math.floor(yinter) >> tile_shift
 				cell_idx_y = ygrid_index*map_width+xgrid_index+1
 				if (xgrid_index >= map_width or ygrid_index >= map_height or xgrid_index < 0 or ygrid_index < 0) then
 					dist_vgrid_hit = math.huge
@@ -291,11 +291,13 @@ function RayCast3D.renderRightScene(x, y)
 		end
 		if (dist_hgrid_hit < dist_vgrid_hit) then
 			dist = dist_hgrid_hit
-			offs = math.ceil(yinter) % 64
+			yinter = math.floor(yinter)
+			offs = yinter - ((yinter >> tile_shift) << tile_shift)
 			cell_idx = cell_idx_x
 		else
 			dist = dist_vgrid_hit
-			offs = math.ceil(xinter) % 64
+			xinter = math.floor(xinter)
+			offs = xinter - ((xinter >> tile_shift) << tile_shift)
 			cell_idx = cell_idx_y
 		end
 		dist = dist / fishtable[stride]
@@ -360,7 +362,7 @@ function RayCast3D.renderLeftScene(x, y)
 		else
 			dist_next_xinter = xsteptable[castArc]
 			while true do
-				xgrid_index = math.ceil(xinter) >> tile_shift
+				xgrid_index = math.floor(xinter) >> tile_shift
 				ygrid_index = hgrid >> tile_shift
 				cell_idx_x = ygrid_index*map_width+xgrid_index+1
 				if (xgrid_index >= map_width or ygrid_index >= map_height or xgrid_index < 0 or ygrid_index < 0) then
@@ -393,7 +395,7 @@ function RayCast3D.renderLeftScene(x, y)
 			dist_next_yinter = ysteptable[castArc]
 			while true do
 				xgrid_index = vgrid >> tile_shift
-				ygrid_index = math.ceil(yinter) >> tile_shift
+				ygrid_index = math.floor(yinter) >> tile_shift
 				cell_idx_y = ygrid_index*map_width+xgrid_index+1
 				if (xgrid_index >= map_width or ygrid_index >= map_height or xgrid_index < 0 or ygrid_index < 0) then
 					dist_vgrid_hit = math.huge
@@ -409,11 +411,13 @@ function RayCast3D.renderLeftScene(x, y)
 		end
 		if (dist_hgrid_hit < dist_vgrid_hit) then
 			dist = dist_hgrid_hit
-			offs = math.ceil(yinter) % 64
+			yinter = math.floor(yinter)
+			offs = yinter - ((yinter >> tile_shift) << tile_shift)
 			cell_idx = cell_idx_x
 		else
 			dist = dist_vgrid_hit
-			offs = math.ceil(xinter) % 64
+			xinter = math.floor(xinter)
+			offs = xinter - ((xinter >> tile_shift) << tile_shift)
 			cell_idx = cell_idx_y
 		end
 		dist = dist / fishtable[stride]
@@ -423,7 +427,7 @@ function RayCast3D.renderLeftScene(x, y)
 		if (bot_wall >= vheight) then
 			bot_wall = vheight - 1
 		end
-		RenderRay(x,y,stride,top_wall,wh,cell_idx,offs)
+		RenderRay(x,y,stride,top_wall,wh,cell_idx,offs,castArc)
 		stride = stride + accuracy
 		castArc = castArc + accuracy
 		if castArc >= ANGLE360 then
@@ -472,7 +476,7 @@ function RayCast3D.renderScene(x, y)
 		else
 			dist_next_xinter = xsteptable[castArc]
 			while true do
-				xgrid_index = math.ceil(xinter) >> tile_shift
+				xgrid_index = math.floor(xinter) >> tile_shift
 				ygrid_index = hgrid >> tile_shift
 				cell_idx_x = ygrid_index*map_width+xgrid_index+1
 				if (xgrid_index >= map_width or ygrid_index >= map_height or xgrid_index < 0 or ygrid_index < 0) then
@@ -505,7 +509,7 @@ function RayCast3D.renderScene(x, y)
 			dist_next_yinter = ysteptable[castArc]
 			while true do
 				xgrid_index = vgrid >> tile_shift
-				ygrid_index = math.ceil(yinter) >> tile_shift
+				ygrid_index = math.floor(yinter) >> tile_shift
 				cell_idx_y = ygrid_index*map_width+xgrid_index+1
 				if (xgrid_index >= map_width or ygrid_index >= map_height or xgrid_index < 0 or ygrid_index < 0) then
 					dist_vgrid_hit = math.huge
@@ -521,11 +525,13 @@ function RayCast3D.renderScene(x, y)
 		end
 		if (dist_hgrid_hit < dist_vgrid_hit) then
 			dist = dist_hgrid_hit
-			offs = math.ceil(yinter) % 64
+			yinter = math.floor(yinter)
+			offs = yinter - ((yinter >> tile_shift) << tile_shift)
 			cell_idx = cell_idx_x
 		else
 			dist = dist_vgrid_hit
-			offs = math.ceil(xinter) % 64
+			xinter = math.floor(xinter)
+			offs = xinter - ((xinter >> tile_shift) << tile_shift)
 			cell_idx = cell_idx_y
 		end
 		dist = dist / fishtable[stride]
@@ -623,17 +629,25 @@ function RayCast3D.movePlayer(dir, speed)
 	xtmp = pl_x >> tile_shift
 	new_cell = 1 + (xtmp) + (ytmp * map_width)
 	if map[new_cell] ~= 0 then
-		ydiff = (old_y >> tile_shift) - ytmp
-		if ydiff > 0 then
-			pl_y = (ytmp << tile_shift) + (tile_size + 1)
-		elseif ydiff < 0 then
-			pl_y = (ytmp << tile_shift) - 1
+		ydiff = (old_y >> tile_shift)
+		ydiff2 = ydiff - ytmp
+		xdiff = (old_x >> tile_shift)
+		xdiff2 = xdiff - xtmp
+		if  map[1 + (xdiff) + (ytmp * map_width)] ~= 0 then
+			if ydiff2 > 0 then
+				pl_y = (ytmp << tile_shift) + (tile_size + 1)
+			elseif ydiff2 < 0 then
+				pl_y = (ytmp << tile_shift) - 1
+			end
 		end
-		xdiff = (old_x >> tile_shift) - xtmp
-		if xdiff > 0 then
-			pl_x = (xtmp << tile_shift) + (tile_size + 1)
-		elseif xdiff < 0 then
-			pl_x = (xtmp << tile_shift) - 1
+		xdiff = (old_x >> tile_shift)
+		xdiff2 = xdiff - xtmp
+		if map[1 + (xtmp) + (ydiff * map_width)] ~= 0 then
+			if xdiff2 > 0 then
+				pl_x = (xtmp << tile_shift) + (tile_size + 1)
+			elseif xdiff2 < 0 then
+				pl_x = (xtmp << tile_shift) - 1
+			end
 		end
 	end
 end
