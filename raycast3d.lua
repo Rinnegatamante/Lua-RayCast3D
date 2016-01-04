@@ -371,7 +371,7 @@ function RayCast3D.renderRightScene(x, y)
 			hgrid = hgrid - 1
 		end
 		if (castArc == ANGLE0 or castArc == ANGLE180) then -- Prevent asymptotics values
-			dist_vgrid_hit = 99999
+			dist_hgrid_hit = 99999
 		else
 			dist_next_xinter = xsteptable[castArc]
 			while true do
@@ -485,7 +485,7 @@ function RayCast3D.renderScene(x, y)
 			hgrid = hgrid - 1
 		end
 		if (castArc == ANGLE0 or castArc == ANGLE180) then -- Prevent asymptotics values
-			dist_vgrid_hit = 99999
+			dist_hgrid_hit = 99999
 		else
 			dist_next_xinter = xsteptable[castArc]
 			while true do
@@ -768,7 +768,7 @@ function RayCast3D.shoot(x, y, angle)
 		hgrid = hgrid - 1
 	end
 	if (castArc == ANGLE0 or castArc == ANGLE180) then -- Prevent asymptotics values
-		dist_vgrid_hit = 99999
+		dist_hgrid_hit = 99999
 	else
 		dist_next_xinter = xsteptable[castArc]
 		while true do
@@ -786,6 +786,8 @@ function RayCast3D.shoot(x, y, angle)
 				hgrid = hgrid + dist_next_hgrid
 			end
 		end
+		xx = xgrid_index
+		xy = ygrid_index
 	end
 	if castArc < ANGLE90 or castArc > ANGLE270 then
 		vgrid = tile_size + ((x >> tile_shift) << tile_shift)
@@ -818,16 +820,15 @@ function RayCast3D.shoot(x, y, angle)
 				vgrid = vgrid + dist_next_vgrid
 			end
 		end
+		yx = xgrid_index
+		yy = ygrid_index
 	end
 	if (dist_hgrid_hit < dist_vgrid_hit) then
-		xinter = math.floor(xinter)	
-		cell_idx = cell_idx_x
+		x = xx
+		y = xy
 	else
-		yinter = math.floor(yinter)
-		cell_idx = cell_idx_y
+		x = yx
+		y = yy
 	end
-	cell_idx = cell_idx - 1
-	x = cell_idx % map_width
-	y = (cell_idx - x) / map_width
 	return {["x"] = x, ["y"] = y}
 end
