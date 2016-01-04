@@ -74,6 +74,7 @@ local dist_proj =  (vwidth >> 1) / math.tan(math.rad(viewsize >> 1))
 local accuracy = 2
 local floors = true
 local sky = false
+local noclip = false
 RayCast3D = {}
 
 -- Internal Functions (DON'T EDIT)
@@ -85,6 +86,9 @@ local function rad2arc(val)
 end
 local function WallRender(x,y,stride,top_wall,wh,cell_idx,offs)
 	tmp = map[cell_idx]
+	if tmp == nil then
+		return
+	end
 	if tmp < 2 then
 		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,wall_c)
 	else
@@ -94,6 +98,9 @@ local function WallRender(x,y,stride,top_wall,wh,cell_idx,offs)
 end
 local function WallFloorRender(x,y,stride,top_wall,wh,cell_idx,offs)
 	tmp = map[cell_idx]
+	if tmp == nil then
+		return
+	end
 	if tmp < 2 then
 		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,wall_c)
 	else
@@ -104,6 +111,9 @@ local function WallFloorRender(x,y,stride,top_wall,wh,cell_idx,offs)
 end
 local function WallSkyRender(x,y,stride,top_wall,wh,cell_idx,offs)
 	tmp = map[cell_idx]
+	if tmp == nil then
+		return
+	end
 	if tmp < 2 then
 		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,wall_c)
 	else
@@ -114,6 +124,9 @@ local function WallSkyRender(x,y,stride,top_wall,wh,cell_idx,offs)
 end
 local function WallFloorSkyRender(x,y,stride,top_wall,wh,cell_idx,offs)
 	tmp = map[cell_idx]
+	if tmp == nil then
+		return
+	end
 	if tmp < 2 then
 		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,wall_c)
 	else
@@ -599,6 +612,7 @@ function RayCast3D.spawnPlayer(x, y, angle)
 	pl_x = x
 	pl_y = y
 	pl_angle = math.floor(rad2arc(math.rad(angle)))
+	ycenter = vheight >> 1
 end
 
 --[[getPlayer: Gets player status]]--
@@ -624,6 +638,9 @@ function RayCast3D.movePlayer(dir, speed)
 	elseif dir == RIGHT then
 		pl_x = pl_x - ymov
 		pl_y = pl_y + xmov
+	end
+	if noclip then
+		return
 	end
 	ytmp = pl_y >> tile_shift
 	xtmp = pl_x >> tile_shift
@@ -728,4 +745,89 @@ end
 --[[setSkyColor: Sets player color]]--
 function RayCast3D.setPlayerColor(val)
 	player_c = val
+end
+
+--[[noClipMode: Sets noClip mode status]]--
+function RayCast3D.noClipMode(val)
+	noclip = val
+end
+
+--[[shoot: Shoot a ray and returns cell x,y values of first wall]]--
+function RayCast3D.shoot(x, y, angle)
+	castArc = math.floor(rad2arc(math.rad(angle)))
+	if (castArc > ANGLE0 and castArc < ANGLE180) then
+		hgrid = ((y >> tile_shift) << tile_shift) + tile_size
+		dist_next_hgrid = tile_size
+		xtmp = tantable2[castArc]*(hgrid-y)
+		xinter = xtmp + x
+	else
+		hgrid = ((y >> tile_shift) << tile_shift)
+		dist_next_hgrid = -tile_size
+		xtmp = tantable2[castArc]*(hgrid-y)
+		xinter = xtmp + x
+		hgrid = hgrid - 1
+	end
+	if (castArc == ANGLE0 or castArc == ANGLE180) then -- Prevent asymptotics values
+		dist_vgrid_hit = 99999
+	else
+		dist_next_xinter = xsteptable[castArc]
+		while true do
+			xgrid_index = math.floor(xinter) >> tile_shift
+			ygrid_index = hgrid >> tile_shift
+			cell_idx_x = ygrid_index*map_width+xgrid_index+1
+			if (xgrid_index >= map_width or ygrid_index >= map_height or xgrid_index < 0 or ygrid_index < 0) then
+				dist_hgrid_hit = math.huge
+				break
+			elseif (map[cell_idx_x] ~= 0) then
+				dist_hgrid_hit = (xinter - x) * costable2[castArc]
+				break
+			else
+				xinter = xinter + dist_next_xinter
+				hgrid = hgrid + dist_next_hgrid
+			end
+		end
+	end
+	if castArc < ANGLE90 or castArc > ANGLE270 then
+		vgrid = tile_size + ((x >> tile_shift) << tile_shift)
+		dist_next_vgrid = tile_size
+		ytmp = tantable[castArc]*(vgrid - x)
+		yinter = ytmp + y
+	else
+		vgrid = (x >> tile_shift) << tile_shift
+		dist_next_vgrid = 0 - tile_size
+		ytmp = tantable[castArc]*(vgrid-x)
+		yinter = ytmp + y
+		vgrid = vgrid - 1
+	end
+	if (castArc == ANGLE90 or castArc == ANGLE270) then
+		dist_vgrid_hit = 99999
+	else
+		dist_next_yinter = ysteptable[castArc]
+		while true do
+			xgrid_index = vgrid >> tile_shift
+			ygrid_index = math.floor(yinter) >> tile_shift
+			cell_idx_y = ygrid_index*map_width+xgrid_index+1
+			if (xgrid_index >= map_width or ygrid_index >= map_height or xgrid_index < 0 or ygrid_index < 0) then
+				dist_vgrid_hit = math.huge
+				break
+			elseif (map[cell_idx_y] ~= 0) then
+				dist_vgrid_hit = (yinter-y)*sintable2[castArc]
+				break
+			else
+				yinter = yinter + dist_next_yinter
+				vgrid = vgrid + dist_next_vgrid
+			end
+		end
+	end
+	if (dist_hgrid_hit < dist_vgrid_hit) then
+		xinter = math.floor(xinter)	
+		cell_idx = cell_idx_x
+	else
+		yinter = math.floor(yinter)
+		cell_idx = cell_idx_y
+	end
+	cell_idx = cell_idx - 1
+	x = cell_idx % map_width
+	y = (cell_idx - x) / map_width
+	return {["x"] = x, ["y"] = y}
 end
