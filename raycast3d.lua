@@ -49,7 +49,7 @@ local pl_angle = 0
 local ANGLE60 = vwidth
 local ANGLE30 = ANGLE60 >> 1
 local ANGLE15 = ANGLE30 >> 1
-local ANGLE5 = math.ceil(ANGLE30 / 6)
+local ANGLE5 = math.floor(ANGLE30 / 6)
 local ANGLE10 = ANGLE5 << 1
 local ANGLE0 = 0
 local ANGLE90 = ANGLE30 * 3
@@ -127,7 +127,7 @@ local function ResetAngles()
 	ANGLE60 = vwidth
 	ANGLE30 = ANGLE60 >> 1
 	ANGLE15 = ANGLE30 >> 1
-	ANGLE5 = math.ceil(ANGLE30 / 6)
+	ANGLE5 = math.floor(ANGLE30 / 6)
 	ANGLE10 = ANGLE5 << 1
 	ANGLE0 = 0
 	ANGLE90 = ANGLE30 * 3
@@ -198,10 +198,10 @@ function RayCast3D.setViewsize(angle)
 	ResetProjections()
 end
 
---[[renderRightScene: Render right eye viewport scene using GPU]]--
-function RayCast3D.renderRightScene(x, y)
-	xdiff = math.ceil(costable[pl_angle] * Screen.get3DLevel() * 5)
-	ydiff = math.ceil(sintable[pl_angle] * Screen.get3DLevel() * 5)
+--[[renderRightScene: Render left eye viewport scene using GPU]]--
+function RayCast3D.renderLeftScene(x, y)
+	xdiff = math.floor(costable[pl_angle] * Screen.get3DLevel() * 5)
+	ydiff = math.floor(sintable[pl_angle] * Screen.get3DLevel() * 5)
 	or_x = pl_x
 	or_y = pl_y
 	pl_x = pl_x + ydiff
@@ -301,8 +301,8 @@ function RayCast3D.renderRightScene(x, y)
 			cell_idx = cell_idx_y
 		end
 		dist = dist / fishtable[stride]
-		wh = math.ceil(wall_height * dist_proj / dist)
-		bot_wall = ycenter + math.ceil(wh * 0.5)
+		wh = math.floor(wall_height * dist_proj / dist)
+		bot_wall = ycenter + math.floor(wh * 0.5)
 		top_wall = vheight-bot_wall
 		if (bot_wall >= vheight) then
 			bot_wall = vheight - 1
@@ -318,10 +318,10 @@ function RayCast3D.renderRightScene(x, y)
 	pl_y = or_y
 end
 
---[[renderLeftScene: Render left eye viewport scene using GPU]]--
-function RayCast3D.renderLeftScene(x, y)
-	xdiff = math.ceil(costable[pl_angle] * Screen.get3DLevel() * 5)
-	ydiff = math.ceil(sintable[pl_angle] * Screen.get3DLevel() * 5)
+--[[renderLeftScene: Render right eye viewport scene using GPU]]--
+function RayCast3D.renderRightScene(x, y)
+	xdiff = math.floor(costable[pl_angle] * Screen.get3DLevel() * 5)
+	ydiff = math.floor(sintable[pl_angle] * Screen.get3DLevel() * 5)
 	or_x = pl_x
 	or_y = pl_y
 	pl_x = pl_x - ydiff
@@ -421,8 +421,8 @@ function RayCast3D.renderLeftScene(x, y)
 			cell_idx = cell_idx_y
 		end
 		dist = dist / fishtable[stride]
-		wh = math.ceil(wall_height * dist_proj / dist)
-		bot_wall = ycenter + math.ceil(wh * 0.5)
+		wh = math.floor(wall_height * dist_proj / dist)
+		bot_wall = ycenter + math.floor(wh * 0.5)
 		top_wall = vheight-bot_wall
 		if (bot_wall >= vheight) then
 			bot_wall = vheight - 1
@@ -535,8 +535,8 @@ function RayCast3D.renderScene(x, y)
 			cell_idx = cell_idx_y
 		end
 		dist = dist / fishtable[stride]
-		wh = math.ceil(wall_height * dist_proj / dist)
-		bot_wall = ycenter + math.ceil(wh * 0.5)
+		wh = math.floor(wall_height * dist_proj / dist)
+		bot_wall = ycenter + math.floor(wh * 0.5)
 		top_wall = vheight-bot_wall
 		if (bot_wall >= vheight) then
 			bot_wall = vheight - 1
@@ -598,7 +598,7 @@ end
 function RayCast3D.spawnPlayer(x, y, angle)
 	pl_x = x
 	pl_y = y
-	pl_angle = math.ceil(rad2arc(math.rad(angle)))
+	pl_angle = math.floor(rad2arc(math.rad(angle)))
 end
 
 --[[getPlayer: Gets player status]]--
@@ -608,8 +608,8 @@ end
 
 --[[movePlayer: Moves player]]--
 function RayCast3D.movePlayer(dir, speed)
-	xmov = math.ceil(costable[pl_angle] * speed)
-	ymov = math.ceil(sintable[pl_angle] * speed)
+	xmov = math.ceil((costable[pl_angle] * speed) - .5)
+	ymov = math.ceil((sintable[pl_angle] * speed) - .5)
 	old_x = pl_x
 	old_y = pl_y
 	if dir == FORWARD then
@@ -657,12 +657,12 @@ function RayCast3D.rotateCamera(dir, speed)
 	if dir == LEFT then
 		pl_angle = pl_angle - speed
 		if pl_angle < ANGLE0 then
-			pl_angle = math.ceil(pl_angle + ANGLE360)
+			pl_angle = math.floor(pl_angle + ANGLE360)
 		end
 	elseif dir == RIGHT then
 		pl_angle = pl_angle + speed
 		if pl_angle >= ANGLE360 then
-			pl_angle = math.ceil(pl_angle - ANGLE360)
+			pl_angle = math.floor(pl_angle - ANGLE360)
 		end
 	elseif dir == FORWARD then
 		ycenter = ycenter - (speed >> 2)
