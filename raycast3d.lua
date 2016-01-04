@@ -98,7 +98,7 @@ local function WallFloorRender(x,y,stride,top_wall,wh,cell_idx,offs)
 		Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,wall_c)
 	else
 		scale_y = wh / tile_size
-		Graphics.drawImageExtended(x+stride,y+top_wall+(wh/2), offs, 0, accuracy, tile_size, 0, 1, scale_y, tmp)
+		Graphics.drawImageExtended(x+stride,y+top_wall+(wh/2), offs, 0, accuracy, tile_size, 0.0, 1.0, scale_y, tmp)
 	end
 	Graphics.fillRect(x+stride,x+stride+accuracy,y+top_wall+wh,vheight,floor_c)
 end
@@ -291,13 +291,13 @@ function RayCast3D.renderLeftScene(x, y)
 		end
 		if (dist_hgrid_hit < dist_vgrid_hit) then
 			dist = dist_hgrid_hit
-			yinter = math.floor(yinter)
-			offs = yinter - ((yinter >> tile_shift) << tile_shift)
+			xinter = math.floor(xinter)
+			offs = xinter - ((xinter >> tile_shift) << tile_shift)		
 			cell_idx = cell_idx_x
 		else
 			dist = dist_vgrid_hit
-			xinter = math.floor(xinter)
-			offs = xinter - ((xinter >> tile_shift) << tile_shift)
+			yinter = math.floor(yinter)
+			offs = yinter - ((yinter >> tile_shift) << tile_shift)
 			cell_idx = cell_idx_y
 		end
 		dist = dist / fishtable[stride]
@@ -411,13 +411,13 @@ function RayCast3D.renderRightScene(x, y)
 		end
 		if (dist_hgrid_hit < dist_vgrid_hit) then
 			dist = dist_hgrid_hit
-			yinter = math.floor(yinter)
-			offs = yinter - ((yinter >> tile_shift) << tile_shift)
+			xinter = math.floor(xinter)
+			offs = xinter - ((xinter >> tile_shift) << tile_shift)		
 			cell_idx = cell_idx_x
 		else
 			dist = dist_vgrid_hit
-			xinter = math.floor(xinter)
-			offs = xinter - ((xinter >> tile_shift) << tile_shift)
+			yinter = math.floor(yinter)
+			offs = yinter - ((yinter >> tile_shift) << tile_shift)
 			cell_idx = cell_idx_y
 		end
 		dist = dist / fishtable[stride]
@@ -525,13 +525,13 @@ function RayCast3D.renderScene(x, y)
 		end
 		if (dist_hgrid_hit < dist_vgrid_hit) then
 			dist = dist_hgrid_hit
-			yinter = math.floor(yinter)
-			offs = yinter - ((yinter >> tile_shift) << tile_shift)
+			xinter = math.floor(xinter)
+			offs = xinter - ((xinter >> tile_shift) << tile_shift)			
 			cell_idx = cell_idx_x
 		else
 			dist = dist_vgrid_hit
-			xinter = math.floor(xinter)
-			offs = xinter - ((xinter >> tile_shift) << tile_shift)
+			yinter = math.floor(yinter)
+			offs = yinter - ((yinter >> tile_shift) << tile_shift)
 			cell_idx = cell_idx_y
 		end
 		dist = dist / fishtable[stride]
@@ -629,6 +629,8 @@ function RayCast3D.movePlayer(dir, speed)
 	xtmp = pl_x >> tile_shift
 	new_cell = 1 + (xtmp) + (ytmp * map_width)
 	if map[new_cell] ~= 0 then
+		old2_x = pl_x
+		old2_y = pl_y
 		ydiff = (old_y >> tile_shift)
 		ydiff2 = ydiff - ytmp
 		xdiff = (old_x >> tile_shift)
@@ -648,6 +650,10 @@ function RayCast3D.movePlayer(dir, speed)
 			elseif xdiff2 < 0 then
 				pl_x = (xtmp << tile_shift) - 1
 			end
+		end
+		if old2_x == pl_x and old2_y == pl_y then
+			pl_x = old_x
+			pl_y = old_y
 		end
 	end
 end
