@@ -30,7 +30,6 @@ RayCast3D.setResolution(400, 240)
 RayCast3D.setViewsize(60)
 RayCast3D.loadMap(map, map_width, map_height, tile_size, wall_height)
 RayCast3D.spawnPlayer(80, 80, 90)
---RayCast3D.enableSky(true)
 
 -- Set accuracy depending on console
 System.setCpuSpeed(804)
@@ -43,11 +42,14 @@ end
 -- Set 3D variable
 is3D = false
 
--- Setting floor and sky colors
-ceil_c = Color.new(83, 69, 59, 255)
-floor_c = Color.new(25, 17, 15, 255)
---RayCast3D.setSkyColor(ceil_c)
-RayCast3D.setFloorColor(floor_c)
+-- Using an image as skybox
+RayCast3D.enableFloor(false)
+RayCast3D.setFloorColor(Color.new(29,14,7))
+skybox = Graphics.loadImage(System.currentDirectory().."/skybox.png")
+
+-- Enabling shading and using it
+RayCast3D.useShading(true)
+RayCast3D.setDepth(300)
 
 Graphics.init()
 while true do
@@ -60,23 +62,28 @@ while true do
 	-- Rendering scene
 	if is3D then
 		Graphics.initBlend(TOP_SCREEN,LEFT_EYE)
-		Graphics.fillRect(0,400,0,240,ceil_c) -- Simulates skybox; currently faster then sky rendering
+		Graphics.drawImage(0,0,skybox)
 		RayCast3D.renderLeftScene(0,0)
 		Graphics.termBlend()
 		Graphics.initBlend(TOP_SCREEN,RIGHT_EYE)
-		Graphics.fillRect(0,400,0,240,ceil_c) -- Simulates skybox; currently faster then sky rendering
+		Graphics.drawImage(0,0,skybox)
 		RayCast3D.renderRightScene(0,0)
 		Graphics.termBlend()
 	else
 		Graphics.initBlend(TOP_SCREEN)
-		Graphics.fillRect(0,400,0,240,ceil_c) -- Simulates skybox; currently faster then sky rendering
+		Graphics.drawImage(0,0,skybox)
 		RayCast3D.renderScene(0,0)
 		Graphics.termBlend()
 	end
 	
+	-- Getting current watched cell
+	pl = RayCast3D.getPlayer()
+	cell = RayCast3D.shoot(pl.x, pl.y, pl.angle)
+	
 	-- Rendering minimap
 	Graphics.initBlend(BOTTOM_SCREEN)
 	RayCast3D.renderMap(10, 80, 15)
+	Graphics.fillRect(10 + cell.x * 15, 10 + cell.x * 15+15, 80 + cell.y * 15, 80 + cell.y * 15+15, Color.new(255,0,0, 100))
 	Graphics.termBlend()
 	
 	-- Player and camera movements
@@ -102,6 +109,7 @@ while true do
 	if Controls.check(pad,KEY_START) then
 		Graphics.freeImage(W)
 		Graphics.freeImage(I)
+		Graphics.freeImage(skybox)
 		Graphics.term()
 		System.exit()
 	end
@@ -132,6 +140,15 @@ while true do
 		end
 		
 	end
+	
+	-- Screenshots
+	if Controls.check(pad, KEY_Y) and not Controls.check(oldpad, KEY_Y) then
+		dd,d,m,y = System.getDate()
+		h,m,s = System.getTime()
+		scr_name = "raycast3d_"..d.."_"..m.."_"..h.."_"..m.."_"..s..".jpg"
+		System.takeScreenshot("/"..scr_name, true)
+	end
+	
 	oldpad = pad
 	
 	-- Printing player info on the bottom screen
