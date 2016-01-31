@@ -1,29 +1,33 @@
-<b>Lua RayCast3D</b>
+<p align="center">
+	<img src="http://rinnegatamante.it/raycast3dlogo.png"/>
+</p>
 
-Lua RayCast3D is a 3D Game Engine for Nintendo 3DS which runs under Lua Player Plus 3DS (lpp-3ds).<br>
-It uses Ray-Casting algorithm (https://en.wikipedia.org/wiki/Ray_casting) to generate a 3D world starting from a 2D map.<br>
-It runs fullspeed on N3DS withtout any accuracy value but runs smooth on O3DS only with accuracy values >= 3.<br><br>
+# Description
 
-At the moment these are the <b>Features</b> Lua RayCast3D offers:<br>
-- Different tile size maps
-- Automated camera and player position management
-- Support for huge maps (pratically there aren't limitations)
-- Support for sky rendering and floor rendering
-- Automated minimap renderer with player position
-- Textured walls support
-- Editable FOV
-- Walls collision
+**RayCast3D** is a 3D Game Engine for Nintendo 3DS which runs under [Lua Player Plus 3DS](https://github.com/Rinnegatamante/lpp-3ds).
+It uses [RayCasting algorithm](https://en.wikipedia.org/wiki/Ray_casting) to generate a 3D world starting from a 2D map.
+It runs fullspeed on N3DS even with best accuracy values. On O3DS it runs pretty good with accuracy value >= 2.
 
-What this engine needs to be finished is listed in this <b>TODO List</b>:<br>
-- Sprites support for animations
-- Bullets physic
-- Support to textures for sky, floors
+# Features
 
-A cool TechDemo recorded by ihaveamac can be watched here: https://www.youtube.com/watch?v=lWFZMdCD-4c
-<br><br>
-<b>Credits:</b><br><br>
-- Rinnegatamante: Author
-- ihaveamac: Tester
-- Special thanks to fpermadi for this really cool tutorial i used as base about RayCasting algorithm: http://permadi.com/1996/05/ray-casting-tutorial-table-of-contents/
+* Different tile size maps support
+* Automated camera and player position management
+* No restrictions on maps sizes
+* Support for sky and floor rendering (still choppy at the moment)
+* Automated minimap renderer with player position
+* ShootCasting feature to easily build FPS and similars
+* Textured walls support
+* Customizable FOV
+* Walls collision detection
+* Shading support for shadows, fogs and similar effects
 
+# TechDemo (by ihaveamac)
+
+[TechDemo](https://www.youtube.com/watch?v=lWFZMdCD-4c)
+
+# Credits
+
+* Rinnegatamante: Author
+* ihaveamac: Tester
+* Special thanks to fpermadi for [this really cool tutorial](http://permadi.com/1996/05/ray-casting-tutorial-table-of-contents/) i used as base to learn about RayCasting algorithm
 
