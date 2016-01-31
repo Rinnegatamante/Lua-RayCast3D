@@ -25,9 +25,16 @@ It runs fullspeed on N3DS even with best accuracy values. On O3DS it runs pretty
 
 [TechDemo](https://www.youtube.com/watch?v=lWFZMdCD-4c)
 
+# Showcase
+
+Here are some games made using RayCast3D:
+
+* [Labyrinth 3D](http://gbatemp.net/threads/re-release-labyrinth-3d.409007/)
+
 # Credits
 
 * Rinnegatamante: Author
 * ihaveamac: Tester
+* Misledz for the engine logo
 * Special thanks to fpermadi for [this really cool tutorial](http://permadi.com/1996/05/ray-casting-tutorial-table-of-contents/) i used as base to learn about RayCasting algorithm
 
