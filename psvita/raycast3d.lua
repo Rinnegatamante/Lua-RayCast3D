@@ -143,6 +143,7 @@ local function WallFloorRender(x,y,stride,top_wall,wh,cell_idx,offs)
 		drawRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,wall_c)
 	else
 		scale_y = wh / tile_size
+		drawImage(x+stride,y+top_wall, offs, 0, accuracy, tile_size, 1.0, scale_y, tmp)
 	end
 end
 local function WallFloorRenderShad(x,y,stride,top_wall,wh,cell_idx,offs)
@@ -155,6 +156,7 @@ local function WallFloorRenderShad(x,y,stride,top_wall,wh,cell_idx,offs)
 	if tmp == 1 or tmp == 0 then
 		drawRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,wall_c)
 	else
+		drawImage(x+stride,y+top_wall, offs, 0, accuracy, tile_size, 1.0, scale_y, tmp)
 	end
 	drawRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,genColor(shad_r,shad_g,shad_b,doMin(255,floor_num(shad_val / scale_y))))
 end
