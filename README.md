@@ -4,7 +4,7 @@
 
 # Description
 
-**RayCast3D** is a 3D Game Engine for Nintendo 3DS which runs under [Lua Player Plus 3DS](https://github.com/Rinnegatamante/lpp-3ds).
+**RayCast3D** is a 3D Game Engine for Nintendo 3DS / PSVITA which runs under [Lua Player Plus 3DS](https://github.com/Rinnegatamante/lpp-3ds) / [Lua Player Plus Vita](https://github.com/Rinnegatamante/lpp-vita).
 It uses [RayCasting algorithm](https://en.wikipedia.org/wiki/Ray_casting) to generate a 3D world starting from a 2D map.
 It runs fullspeed on N3DS even with best accuracy values. On O3DS it runs pretty good with accuracy value >= 2.
 
