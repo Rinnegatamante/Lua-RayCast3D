@@ -29,7 +29,7 @@ It runs fullspeed on N3DS even with best accuracy values. On O3DS it runs pretty
 
 Here are some games made using RayCast3D:
 
-* [Labyrinth 3D](https://rinnegatamante.it/board/showthread.php?tid=18)
+* Labyrinth 3D [3DS](https://rinnegatamante.it/board/showthread.php?tid=18)/[PSVITA](http://wololo.net/talk/viewtopic.php?f=116&t=46845)
 
 # Credits
 
