@@ -49,8 +49,8 @@ local floor_num = math.floor
 local ceil_num = math.ceil
 local drawImage = Graphics.drawImageExtended
 local drawRect = Graphics.fillRect
-local getHeight = getHeight
-local getWidth = getWidth
+local getHeight = Graphics.getImageHeight
+local getWidth = Graphics.getImageWidth
 local rad2deg = math.deg
 local deg2rad = math.rad
 local genColor = Color.new
@@ -121,7 +121,7 @@ local function WallRender(x,y,stride,top_wall,wh,cell_idx,offs)
 	else
 		scale_y = wh / getHeight(tmp)
 		scale_x = getWidth(tmp) / tile_size
-		drawImage(x+stride,y+top_wall, offs * scale_x, 0, accuracy, getHeight(tmp), 0, 1.0, scale_y, tmp)
+		drawImage(x+stride,y+top_wall+wh/2, offs * scale_x, 0, accuracy, getHeight(tmp), 0, 1.0, scale_y, tmp)
 	end
 end
 local function WallRenderShad(x,y,stride,top_wall,wh,cell_idx,offs)
@@ -134,10 +134,10 @@ local function WallRenderShad(x,y,stride,top_wall,wh,cell_idx,offs)
 	else
 		scale_y = wh / getHeight(tmp)
 		scale_x = getWidth(tmp) / tile_size
-		drawImage(x+stride,y+top_wall, offs * scale_x, 0, accuracy+1, getHeight(tmp), 0, 1.0, scale_y, tmp)
+		drawImage(x+stride,y+top_wall+wh/2, offs * scale_x, 0, accuracy+1, getHeight(tmp), 0, 1.0, scale_y, tmp)
 	end
 	scale_y = wh / tile_size
-	drawRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,genColor(shad_r,shad_g,shad_b,doMin(255,floor_num(shad_val / scale_y))))
+	drawRect(x+stride-2,x+stride+accuracy+2,y+top_wall,y+top_wall+wh,genColor(shad_r,shad_g,shad_b,doMin(255,floor_num(shad_val / scale_y))))
 end
 local function WallFloorRender(x,y,stride,top_wall,wh,cell_idx,offs)
 	drawRect(x+stride,x+stride+accuracy,y+top_wall+wh,vheight,floor_c)
@@ -150,7 +150,7 @@ local function WallFloorRender(x,y,stride,top_wall,wh,cell_idx,offs)
 	else
 		scale_y = wh / getHeight(tmp)
 		scale_x = getWidth(tmp) / tile_size
-		drawImage(x+stride,y+top_wall, offs * scale_x, 0, accuracy, getHeight(tmp), 0, 1.0, scale_y, tmp)
+		drawImage(x+stride,y+top_wall+wh/2, offs * scale_x, 0, accuracy, getHeight(tmp), 0, 1.0, scale_y, tmp)
 	end
 end
 local function WallFloorRenderShad(x,y,stride,top_wall,wh,cell_idx,offs)
@@ -164,10 +164,10 @@ local function WallFloorRenderShad(x,y,stride,top_wall,wh,cell_idx,offs)
 	else
 		scale_y = wh / getHeight(tmp)
 		scale_x = getWidth(tmp) / tile_size
-		drawImage(x+stride,y+top_wall, offs * scale_x, 0, accuracy, getHeight(tmp), 0, 1.0, scale_y, tmp)
+		drawImage(x+stride,y+top_wall+wh/2, offs * scale_x, 0, accuracy, getHeight(tmp), 0, 1.0, scale_y, tmp)
 	end
 	scale_y = wh / tile_size
-	drawRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,genColor(shad_r,shad_g,shad_b,doMin(255,floor_num(shad_val / scale_y))))
+	drawRect(x+stride-2,x+stride+accuracy+2,y+top_wall,y+top_wall+wh,genColor(shad_r,shad_g,shad_b,doMin(255,floor_num(shad_val / scale_y))))
 end
 local function WallSkyRender(x,y,stride,top_wall,wh,cell_idx,offs)
 	tmp = map[cell_idx]
@@ -179,7 +179,7 @@ local function WallSkyRender(x,y,stride,top_wall,wh,cell_idx,offs)
 	else
 		scale_y = wh / getHeight(tmp)
 		scale_x = getWidth(tmp) / tile_size
-		drawImage(x+stride,y+top_wall, offs * scale_x, 0, accuracy, getHeight(tmp), 0, 1.0, scale_y, tmp)
+		drawImage(x+stride,y+top_wall+wh/2, offs * scale_x, 0, accuracy, getHeight(tmp), 0, 1.0, scale_y, tmp)
 	end
 	scale_y = wh / tile_size
 	drawRect(x+stride,x+stride+accuracy,y+top_wall,y,floor_c)
@@ -195,10 +195,10 @@ local function WallSkyRenderShad(x,y,stride,top_wall,wh,cell_idx,offs)
 	else
 		scale_y = wh / getHeight(tmp)
 		scale_x = getWidth(tmp) / tile_size
-		drawImage(x+stride,y+top_wall, offs * scale_x, 0, accuracy, getHeight(tmp), 0, 1.0, scale_y, tmp)
+		drawImage(x+stride,y+top_wall+wh/2, offs * scale_x, 0, accuracy, getHeight(tmp), 0, 1.0, scale_y, tmp)
 	end
 	scale_y = wh / tile_size
-	drawRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,genColor(shad_r,shad_g,shad_b,doMin(255,floor_num(shad_val / scale_y))))
+	drawRect(x+stride-2,x+stride+accuracy+2,y+top_wall,y+top_wall+wh,genColor(shad_r,shad_g,shad_b,doMin(255,floor_num(shad_val / scale_y))))
 end
 local function WallFloorSkyRender(x,y,stride,top_wall,wh,cell_idx,offs)
 	tmp = map[cell_idx]
@@ -210,7 +210,7 @@ local function WallFloorSkyRender(x,y,stride,top_wall,wh,cell_idx,offs)
 	else
 		scale_y = wh / getHeight(tmp)
 		scale_x = getWidth(tmp) / tile_size
-		drawImage(x+stride,y+top_wall, offs * scale_x, 0, accuracy, getHeight(tmp), 0, 1.0, scale_y, tmp)
+		drawImage(x+stride,y+top_wall+wh/2, offs * scale_x, 0, accuracy, getHeight(tmp), 0, 1.0, scale_y, tmp)
 	end
 	drawRect(x+stride,x+stride+accuracy,y+top_wall+wh,vheight,floor_c)
 	drawRect(x+stride,x+stride+accuracy,y+top_wall,y,sky_c)
@@ -227,10 +227,10 @@ local function WallFloorSkyRenderShad(x,y,stride,top_wall,wh,cell_idx,offs)
 	else
 		scale_y = wh / getHeight(tmp)
 		scale_x = getWidth(tmp) / tile_size
-		drawImage(x+stride,y+top_wall, offs * scale_x, 0, accuracy, getHeight(tmp), 0, 1.0, scale_y, tmp)
+		drawImage(x+stride,y+top_wall+wh/2, offs * scale_x, 0, accuracy, getHeight(tmp), 0, 1.0, scale_y, tmp)
 	end
 	scale_y = wh / tile_size
-	drawRect(x+stride,x+stride+accuracy,y+top_wall,y+top_wall+wh,genColor(shad_r,shad_g,shad_b,doMin(255,floor_num(shad_val / scale_y))))
+	drawRect(x+stride-2,x+stride+accuracy+2,y+top_wall,y+top_wall+wh,genColor(shad_r,shad_g,shad_b,doMin(255,floor_num(shad_val / scale_y))))
 end
 local RenderRay = WallRender
 local function ResetAngles()
