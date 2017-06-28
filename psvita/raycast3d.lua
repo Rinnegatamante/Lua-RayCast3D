@@ -59,6 +59,8 @@ local doSin = math.sin
 local doCos = math.cos
 local doMin = math.min
 local PI = math.pi
+local shift_r = bit32.rshift
+local shift_l = bit32.lshift
 
  -- Colors Globals
 local floor_c = genColor(255, 255, 255, 255)
@@ -71,15 +73,15 @@ local shad_b = 0
 
 -- Angles Globals (DON'T EDIT)
 local ANGLE60 = vwidth
-local ANGLE30 = ANGLE60 >> 1
-local ANGLE15 = ANGLE30 >> 1
+local ANGLE30 = shift_r(ANGLE60,1)
+local ANGLE15 = shift_r(ANGLE30,1)
 local ANGLE5 = ANGLE15 / 3
-local ANGLE10 = ANGLE5 << 1
+local ANGLE10 = shift_l(ANGLE5,1)
 local ANGLE0 = 0
 local ANGLE90 = ANGLE30 * 3
-local ANGLE180 = ANGLE90 << 1
+local ANGLE180 = shift_l(ANGLE90,1)
 local ANGLE270 = ANGLE90 * 3
-local ANGLE360 = ANGLE180 << 1
+local ANGLE360 = shift_l(ANGLE180,1)
 
 -- PreCalculated Trigonometric Tables (DON'T EDIT)
 local sintable = {}
@@ -93,8 +95,8 @@ local xsteptable = {}
 local ysteptable = {}
 
 -- Internal Globals (DON'T EDIT)
-local ycenter = vheight >> 1
-local dist_proj =  (vwidth >> 1) / doTan(deg2rad(viewsize >> 1))
+local ycenter = shift_r(vheight,1)
+local dist_proj =  (shift_r(vwidth,1)) / doTan(deg2rad(shift_r(viewsize,1)))
 local accuracy = 2
 local shad_val = 500
 local floors = false
@@ -235,15 +237,15 @@ end
 local RenderRay = WallRender
 local function ResetAngles()
 	ANGLE60 = vwidth
-	ANGLE30 = ANGLE60 >> 1
-	ANGLE15 = ANGLE30 >> 1
+	ANGLE30 = shift_r(ANGLE60,1)
+	ANGLE15 = shift_r(ANGLE30,1)
 	ANGLE5 = floor_num(ANGLE30 / 6)
-	ANGLE10 = ANGLE5 << 1
+	ANGLE10 = shift_l(ANGLE5,1)
 	ANGLE0 = 0
 	ANGLE90 = ANGLE30 * 3
-	ANGLE180 = ANGLE90 << 1
+	ANGLE180 = shift_l(ANGLE90,1)
 	ANGLE270 = ANGLE90 * 3
-	ANGLE360 = ANGLE180 << 1
+	ANGLE360 = shift_l(ANGLE180,1)
 	local i = 0
 	local v
 	sintable = {}
@@ -283,7 +285,7 @@ local function ResetAngles()
 	end
 end
 local function ResetProjections()
-	dist_proj =  (vwidth >> 1) / doTan(deg2rad(viewsize >> 1))
+	dist_proj =  (shift_r(vwidth,1)) / doTan(deg2rad(shift_r(viewsize,1)))
 end
 local function ResetRenderer()
 	if floors then
@@ -319,7 +321,7 @@ end
 local function ResetEngine()
 	ResetAngles()
 	ResetProjections()
-	ycenter = vheight >> 1
+	ycenter = shift_r(vheight,1)
 end
 
 --[[setResolution: Sets renderer resolution]]--
@@ -362,12 +364,12 @@ function RayCast3D.renderScene(x, y)
 	local cell_idx_y
 	while stride < vwidth do
 		if (castArc > ANGLE0 and castArc < ANGLE180) then
-			hgrid = ((pl_y >> tile_shift) << tile_shift) + tile_size
+			hgrid = (shift_l((shift_r(pl_y,tile_shift)),tile_shift)) + tile_size
 			dist_next_hgrid = tile_size
 			xtmp = tantable2[castArc]*(hgrid-pl_y)
 			xinter = xtmp + pl_x
 		else
-			hgrid = ((pl_y >> tile_shift) << tile_shift)
+			hgrid = (shift_l((shift_r(pl_y,tile_shift)),tile_shift))
 			dist_next_hgrid = -tile_size
 			xtmp = tantable2[castArc]*(hgrid-pl_y)
 			xinter = xtmp + pl_x
@@ -378,8 +380,8 @@ function RayCast3D.renderScene(x, y)
 		else
 			local dist_next_xinter = xsteptable[castArc]
 			while true do
-				xgrid_index = floor_num(xinter) >> tile_shift
-				ygrid_index = hgrid >> tile_shift
+				xgrid_index = shift_r(floor_num(xinter),tile_shift)
+				ygrid_index = shift_r(hgrid,tile_shift)
 				cell_idx_x = ygrid_index*map_width+xgrid_index+1
 				if (xgrid_index >= map_width or ygrid_index >= map_height or xgrid_index < 0 or ygrid_index < 0) then
 					dist_hgrid_hit = 9999
@@ -394,12 +396,12 @@ function RayCast3D.renderScene(x, y)
 			end
 		end
 		if castArc < ANGLE90 or castArc > ANGLE270 then
-			vgrid = tile_size + ((pl_x >> tile_shift) << tile_shift)
+			vgrid = tile_size + (shift_l(shift_r(pl_x,tile_shift),tile_shift))
 			dist_next_vgrid = tile_size
 			ytmp = tantable[castArc]*(vgrid - pl_x)
 			yinter = ytmp + pl_y
 		else
-			vgrid = (pl_x >> tile_shift) << tile_shift
+			vgrid = shift_l(shift_r(pl_x,tile_shift),tile_shift)
 			dist_next_vgrid = 0 - tile_size
 			ytmp = tantable[castArc]*(vgrid-pl_x)
 			yinter = ytmp + pl_y
@@ -411,8 +413,8 @@ function RayCast3D.renderScene(x, y)
 			local dist_next_yinter = ysteptable[castArc]
 			dist_vgrid_hit = 0
 			while dist_vgrid_hit <= dist_hgrid_hit do
-				xgrid_index = vgrid >> tile_shift
-				ygrid_index = floor_num(yinter) >> tile_shift
+				xgrid_index = shift_r(vgrid,tile_shift)
+				ygrid_index = shift_r(floor_num(yinter),tile_shift)
 				cell_idx_y = ygrid_index*map_width+xgrid_index+1
 				if (xgrid_index >= map_width or ygrid_index >= map_height or xgrid_index < 0 or ygrid_index < 0) then
 					dist_vgrid_hit = 9999
@@ -429,12 +431,12 @@ function RayCast3D.renderScene(x, y)
 		if (dist_hgrid_hit < dist_vgrid_hit) then
 			dist = dist_hgrid_hit
 			xinter = floor_num(xinter)
-			offs = xinter - ((xinter >> tile_shift) << tile_shift)			
+			offs = xinter - (shift_l((shift_r(xinter,tile_shift)),tile_shift))			
 			cell_idx = cell_idx_x
 		else
 			dist = dist_vgrid_hit
 			yinter = floor_num(yinter)
-			offs = yinter - ((yinter >> tile_shift) << tile_shift)
+			offs = yinter - shift_l(shift_r(yinter,tile_shift),tile_shift)
 			cell_idx = cell_idx_y
 		end
 		dist = dist / fishtable[stride]
@@ -505,7 +507,11 @@ function RayCast3D.spawnPlayer(x, y, angle)
 	pl_x = x
 	pl_y = y
 	pl_angle = floor_num(rad2arc(deg2rad(angle)))
-	ycenter = vheight >> 1
+	ycenter = shift_r(vheight,1)
+end
+
+function convertAngle(angle)
+	return floor_num(rad2arc(deg2rad(angle)))
 end
 
 --[[getPlayer: Gets player status]]--
@@ -535,30 +541,30 @@ function RayCast3D.movePlayer(dir, speed)
 	if noclip then
 		return
 	end
-	ytmp = pl_y >> tile_shift
-	xtmp = pl_x >> tile_shift
+	ytmp = shift_r(pl_y,tile_shift)
+	xtmp = shift_r(pl_x,tile_shift)
 	new_cell = 1 + (xtmp) + (ytmp * map_width)
 	if map[new_cell] ~= 0 then
 		old2_x = pl_x
 		old2_y = pl_y
-		ydiff = (old_y >> tile_shift)
+		ydiff = shift_r(old_y,tile_shift)
 		ydiff2 = ydiff - ytmp
-		xdiff = (old_x >> tile_shift)
+		xdiff = shift_r(old_x,tile_shift)
 		xdiff2 = xdiff - xtmp
 		if  map[1 + (xdiff) + (ytmp * map_width)] ~= 0 then
 			if ydiff2 > 0 then
-				pl_y = (ytmp << tile_shift) + (tile_size + 1)
+				pl_y = shift_l(ytmp,tile_shift) + (tile_size + 1)
 			elseif ydiff2 < 0 then
-				pl_y = (ytmp << tile_shift) - 1
+				pl_y = shift_l(ytmp,tile_shift) - 1
 			end
 		end
-		xdiff = (old_x >> tile_shift)
+		xdiff = shift_r(old_x,tile_shift)
 		xdiff2 = xdiff - xtmp
 		if map[1 + (xtmp) + (ydiff * map_width)] ~= 0 then
 			if xdiff2 > 0 then
-				pl_x = (xtmp << tile_shift) + (tile_size + 1)
+				pl_x = shift_l(xtmp,tile_shift) + (tile_size + 1)
 			elseif xdiff2 < 0 then
-				pl_x = (xtmp << tile_shift) - 1
+				pl_x = shift_l(xtmp,tile_shift) - 1
 			end
 		end
 		if old2_x == pl_x and old2_y == pl_y then
@@ -581,12 +587,12 @@ function RayCast3D.rotateCamera(dir, speed)
 			pl_angle = floor_num(pl_angle - ANGLE360)
 		end
 	elseif dir == FORWARD then
-		ycenter = ycenter - (speed >> 2)
+		ycenter = ycenter - shift_r(speed,2)
 		if ycenter < 0 then
 			ycenter = 0
 		end
 	elseif dir == BACK then
-		ycenter = ycenter + (speed >> 2)
+		ycenter = ycenter + shift_r(speed,2)
 		if ycenter > vheight then
 			ycenter = vheight
 		end
@@ -601,7 +607,7 @@ function RayCast3D.loadMap(map_table, m_width, m_height, t_size, w_height)
 		tmp = 2
 		i = 1
 		while tmp < tile_size do
-			tmp = tmp << 1
+			tmp = shift_l(tmp,1)
 			i = i + 1
 		end
 		if tmp ~= tile_size then
@@ -682,12 +688,12 @@ function RayCast3D.shoot(x, y, angle)
 	local cell_idx_x
 	local cell_idx_y
 	if (castArc > ANGLE0 and castArc < ANGLE180) then
-		hgrid = ((y >> tile_shift) << tile_shift) + tile_size
+		hgrid = shift_l(shift_r(y,tile_shift),tile_shift) + tile_size
 		dist_next_hgrid = tile_size
 		xtmp = tantable2[castArc]*(hgrid-y)
 		xinter = xtmp + x
 	else
-		hgrid = ((y >> tile_shift) << tile_shift)
+		hgrid = shift_l(shift_r(y,tile_shift),tile_shift)
 		dist_next_hgrid = -tile_size
 		xtmp = tantable2[castArc]*(hgrid-y)
 		xinter = xtmp + x
@@ -698,8 +704,8 @@ function RayCast3D.shoot(x, y, angle)
 	else
 		dist_next_xinter = xsteptable[castArc]
 		while true do
-			xgrid_index = floor_num(xinter) >> tile_shift
-			ygrid_index = hgrid >> tile_shift
+			xgrid_index = shift_r(floor_num(xinter),tile_shift)
+			ygrid_index = shift_r(hgrid,tile_shift)
 			cell_idx_x = ygrid_index*map_width+xgrid_index+1
 			if (xgrid_index >= map_width or ygrid_index >= map_height or xgrid_index < 0 or ygrid_index < 0) then
 				dist_hgrid_hit = 9999
@@ -716,12 +722,12 @@ function RayCast3D.shoot(x, y, angle)
 		xy = ygrid_index
 	end
 	if castArc < ANGLE90 or castArc > ANGLE270 then
-		vgrid = tile_size + ((x >> tile_shift) << tile_shift)
+		vgrid = tile_size + shift_l(shift_r(x,tile_shift),tile_shift)
 		dist_next_vgrid = tile_size
 		ytmp = tantable[castArc]*(vgrid - x)
 		yinter = ytmp + y
 	else
-		vgrid = (x >> tile_shift) << tile_shift
+		vgrid = shift_l(shift_r(x,tile_shift),tile_shift)
 		dist_next_vgrid = 0 - tile_size
 		ytmp = tantable[castArc]*(vgrid-x)
 		yinter = ytmp + y
@@ -733,8 +739,8 @@ function RayCast3D.shoot(x, y, angle)
 		dist_next_yinter = ysteptable[castArc]
 		dist_vgrid_hit = 0
 		while dist_vgrid_hit <= dist_hgrid_hit do
-			xgrid_index = vgrid >> tile_shift
-			ygrid_index = floor_num(yinter) >> tile_shift
+			xgrid_index = shift_r(vgrid,tile_shift)
+			ygrid_index = shift_r(floor_num(yinter),tile_shift)
 			cell_idx_y = ygrid_index*map_width+xgrid_index+1
 			if (xgrid_index >= map_width or ygrid_index >= map_height or xgrid_index < 0 or ygrid_index < 0) then
 				dist_vgrid_hit = 9999
